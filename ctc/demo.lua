@@ -7,8 +7,8 @@ local final limit = 10
 --##Function##
 function drawBlockage(mon)
 	initialize(mon)
-	paintutils.drawPizel(1, 1, 128)
-	local ig = paintutils.locadImage(image)
+	paintutils.drawPixel(1, 1, 128)
+	local ig = paintutils.loadImage(image)
 	paintutils.drawImage(ig, 1, 1)
 end
 
@@ -98,8 +98,8 @@ end
 --##Main##
 os.loadAPI("strings")
 os.loadAPI("tables")
---local mon = peripheral.warap(outputDir)
---drawBlockage(mon)
+local mon = peripheral.wrap(outputDir)
+drawBlockage(mon)
 
 local list = {}
 addDataForList(list,  2,  7) -- 1
@@ -138,37 +138,35 @@ local diagram = getDiagram(trainroute, limit)
 
 local branch = getBranchList(turnout, trainroute)
 
-tables.printTable(branch)
 
---while true do--rs.getInput("back") do
+while rs.getInput("back") do
 	
 	for i, v in ipairs(diagram) do
-		--drawBlockage(mon)
+		drawBlockage(mon)
 		local tbl = strings.split(v, ",")
 		
 		for i2, v2 in ipairs(tbl) do
 			local num = tonumber(v2)
 			local bk = list[num]
-			--paintutils.drawLine(bk.minX, bk.minY, bk.maxX, bk.maxY, colors.lightBlue)
-			print(string.format("draw(lightBlue): block= %d", num))
+			paintutils.drawLine(bk.minX, bk.minY, bk.maxX, bk.maxY, colors.lightBlue)
+			--print(string.format("draw(lightBlue): block= %d", num))
 			
 		end
 		
 		if branch and tables.in_key(branch, i) then
-			--paintutils.drawPixel(branch[i])
-			local tbl = turnout[branch[i]]
-			print(string.format("draw(orange): x= %d, y= %d", tbl.x, tbl.y))
-			--paintutils.drawPixel(tbl.x, tbl.y, colors.orange)
+			local tbl2 = turnout[branch[i]]
+			--print(string.format("draw(orange): x= %d, y= %d", tbl2.x, tbl2.y))
+			paintutils.drawPixel(tbl2.x, tbl2.y, colors.orange)
 		end
 		sleep(Time)
 		
-		--[[if not rs.getInput("back") then
+		if not rs.getInput("back") then
 			term.restore()
-			--return
-		end]]--
+			return
+		end
 	end
 	sleep(0)
---end
+end
 
---paintutils.drawPixel(1, 1, 128)
---term.restore()
+paintutils.drawPixel(1, 1, 128)
+term.restore()
