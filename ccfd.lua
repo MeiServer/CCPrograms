@@ -11,7 +11,8 @@ function parseArgs(args)
 end
 
 function openFile(fileName)
-	local fileHandler = fs.open(fileName, "w")
+	local filePath = shell.resolve(fileName)
+	local fileHandler = fs.open(filePath, "w")
 	
 	return assert(fileHandler, "Failed to open file: " .. fileName)
 end
