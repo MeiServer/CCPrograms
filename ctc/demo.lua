@@ -15,6 +15,7 @@ function initialize(mon)
 	if mon ~= nil then
 		term.redirect(mon)
 		term.clear()
+		term.setCursorBlink(false)
 		mon.setTextScale(1)
 	end
 end
@@ -167,6 +168,7 @@ while rs.getInput("back") do
 		
 		if not rs.getInput("back") then
 			term.setBackgroundColor(colors.gray)
+			term.setCursorBlink(true)
 			term.restore()
 			return
 		end
@@ -175,4 +177,5 @@ while rs.getInput("back") do
 end
 
 term.setBackgroundColor(colors.gray)
+term.setCursorBlink(true)
 term.restore()
