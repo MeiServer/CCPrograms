@@ -14,7 +14,6 @@ end
 
 function initialize(mon)
 	if mon ~= nil then
-		term.redirect(mon)
 		term.clear()
 		mon.setTextScale(1)
 	end
@@ -99,6 +98,7 @@ end
 os.loadAPI("strings")
 os.loadAPI("tables")
 local mon = peripheral.wrap(outputDir)
+term.redirect(mon)
 drawBlockage(mon)
 
 local list = {}
@@ -128,11 +128,16 @@ addTurnoutForList(turnout, 24,  8,  4,  6)
 addTurnoutForList(turnout, 32, 10, 17, 16)
 
 local trainroute = {}
-addTrainrouteForList(trainroute,  1,  2,  3,  4,  5,  7,  8,  9, 10, 12)
-addTrainrouteForList(trainroute,  4,  6,  6,  6,  7,  8,  9, 10, 12, 13)
-addTrainrouteForList(trainroute,  8,  9, 10, 19, 18, 17, 15, 14, 13, 12)
-addTrainrouteForList(trainroute, 19, 18, 17, 16, 16, 14, 13, 12,  1,  2)
-addTrainrouteForList(trainroute, 16, 14, 13, 12, 11,  1,  2,  3,  4,  5)
+addTrainrouteForList(trainroute,  1,  2,  3,  4,
+	5,  7,  8,  9, 10, 12)
+addTrainrouteForList(trainroute,  4,  6,  6,  6,
+	7,  8,  9, 10, 12, 13)
+addTrainrouteForList(trainroute,  8,  9, 10, 19,
+	18, 17, 15, 14, 13, 12)
+addTrainrouteForList(trainroute, 19, 18, 17, 16,
+	16, 14, 13, 12,  1,  2)
+addTrainrouteForList(trainroute, 16, 14, 13, 12,
+	11,  1,  2,  3,  4,  5)
 
 local diagram = getDiagram(trainroute, limit)
 
