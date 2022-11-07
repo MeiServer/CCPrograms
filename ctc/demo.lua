@@ -6,7 +6,7 @@ local final limit = 10
 
 --##Function##
 function drawBlockage(mon)
-	paintutils.drawPixel(1, 1, 128)
+	term.setBackgoundColor(colors.gray)
 	local ig = paintutils.loadImage(image)
 	paintutils.drawImage(ig, 1, 1)
 end
@@ -166,6 +166,7 @@ while rs.getInput("back") do
 		sleep(Time)
 		
 		if not rs.getInput("back") then
+			term.setBackgoundColor(colors.gray)
 			term.restore()
 			return
 		end
@@ -173,5 +174,5 @@ while rs.getInput("back") do
 	sleep(0)
 end
 
-paintutils.drawPixel(1, 1, 128)
+term.setBackgoundColor(colors.gray)
 term.restore()
