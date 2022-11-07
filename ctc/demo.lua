@@ -6,7 +6,6 @@ local final limit = 10
 
 --##Function##
 function drawBlockage(mon)
-	initialize(mon)
 	paintutils.drawPixel(1, 1, 128)
 	local ig = paintutils.loadImage(image)
 	paintutils.drawImage(ig, 1, 1)
@@ -14,6 +13,7 @@ end
 
 function initialize(mon)
 	if mon ~= nil then
+		term.redirect(mon)
 		term.clear()
 		mon.setTextScale(1)
 	end
@@ -98,7 +98,7 @@ end
 os.loadAPI("strings")
 os.loadAPI("tables")
 local mon = peripheral.wrap(outputDir)
-term.redirect(mon)
+initialize(mon)
 drawBlockage(mon)
 
 local list = {}
