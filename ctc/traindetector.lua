@@ -1,6 +1,6 @@
 --##Config##
 local final outputDir = "top"
-local final maxBlockage = 16
+local final maxBlockage = 8
 
 --##Function##
 function addBlockageForList(list, outtime, leaveTime)
@@ -10,7 +10,8 @@ function addBlockageForList(list, outtime, leaveTime)
 		passageTime = 0,
 		maxPassageTime = outtime,
 		leaveTime = leaveTime,
-		color = bit.blshift(1, table.maxn(list) - 1)
+		incolor = bit.blshift(1, table.maxn(list) - 1)
+		outcolor = bit.blshift(1, (table.maxn(list) - 1) + 8)
 	}
 	
 	table.insert(list, obj)
@@ -18,15 +19,15 @@ end
 
 function entryTrain(list, inputColor)
 	for i, v in ipairs(list) do
-		if colors.test(inputColor, v.color) then
+		if colors.test(inputColor, v.incolor) then
 			v.passageTime = v.maxPassageTime
 		end
 	end
 end
 
-function exitTrain(list)
+function exitTrain(list, inputColor)
 	for i, v in ipairs(list) do
-		if v.passageTime < v.leaveTime then
+		if colors.test(inputColor, v.outcolor) and v.passageTime < v.leaveTime then
 			v.passageTime = 0
 		end
 	end
