@@ -11,7 +11,7 @@ function addBlockageForList(list, outTime, leaveTime)
 	obj = {
 		passageTime = 0,
 		maxPassageTime = outTime * tick,
-		leaveTime = leavetime * tick,
+		leaveTime = leaveTime * tick,
 		incolor = bit.blshift(1, table.maxn(list)),
 		outcolor = bit.blshift(1, table.maxn(list) + 8)
 	}
@@ -51,7 +51,7 @@ end
 function onUpdate(list, inputColor)
 	for i, v in ipairs(list) do
 		if v.passageTime > 0 then
-			v.passageTime = v.passageTime - (1 * tick)
+			v.passageTime = v.passageTime - 1
 			print(string.format("Color: %d, Time: %d", v.incolor, v.passageTime))
 		end
 	end
@@ -74,10 +74,10 @@ addBlockageForList(list,  40, 10)
 addBlockageForList(list,  30, 10)
 addBlockageForList(list,  20, 10)
 
-local inputColor = 2000 + 51
+local inputColor
 
-while true do
-	--inputColor = rs.getBundledInput("back")
+while rs.getInput("front") do
+	inputColor = rs.getBundledInput("back")
 	onUpdate(list, inputColor)
 	sleep(0)
 end
