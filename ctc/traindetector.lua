@@ -1,6 +1,7 @@
 --##Config##
 local final outputDir = "top"
 local final maxBlockage = 8
+local final tick = 20
 
 --##Function##
 function addBlockageForList(list, outtime, leaveTime)
@@ -8,10 +9,10 @@ function addBlockageForList(list, outtime, leaveTime)
 	
 	obj = {
 		passageTime = 0,
-		maxPassageTime = outtime,
-		leaveTime = leaveTime,
-		incolor = bit.blshift(1, table.maxn(list) - 1)
-		outcolor = bit.blshift(1, (table.maxn(list) - 1) + 8)
+		maxPassageTime = outtime * tick,
+		leaveTime = leaveTime * tick,
+		incolor = bit.blshift(1, table.maxn(list))
+		outcolor = bit.blshift(1, table.maxn(list) + 8)
 	}
 	
 	table.insert(list, obj)
@@ -27,8 +28,10 @@ end
 
 function exitTrain(list, inputColor)
 	for i, v in ipairs(list) do
-		if colors.test(inputColor, v.outcolor) and v.passageTime < v.leaveTime then
-			v.passageTime = 0
+		if v.passageTime > 0 then
+			if colors.test(inputColor, v.outcolor) and v.passageTime < v.leaveTime then
+				v.passageTime = 0
+			end
 		end
 	end
 end
@@ -45,14 +48,16 @@ function sendData(list)
 end
 
 function onUpdate(list, inputColor)
-	entryTrain(list, inputColor)
-	exitTrain(list)
-	--rs.setBundledOutput(outputDir, sendData(list))
-	print(sendData(list))
 	for i, v in ipairs(list) do
-		v.passageTime = v.passageTime - 1
+		if v.passageTime > 0 then
+			v.passageTime = v.passageTime - (1 * tick)
+			print(string.format("Color: %d, Time: %d", v.incolor, v.passageTime))
+		end
 	end
-	sleep(0.1)
+	entryTrain(list, inputColor)
+	exitTrain(list, inputColor)
+	--rs.setBundledOutput(outputDir, sendData(list))
+	--print(sendData(list))
 end
 
 	
@@ -67,13 +72,6 @@ addBlockageForList(list,  50, 10)
 addBlockageForList(list,  40, 10)
 addBlockageForList(list,  30, 10)
 addBlockageForList(list,  20, 10)
-addBlockageForList(list,  20, 10)
-addBlockageForList(list, 100, 10)
-addBlockageForList(list, 100, 10)
-addBlockageForList(list, 100, 10)
-addBlockageForList(list, 100, 10)
-addBlockageForList(list, 100, 10)
-addBlockageForList(list, 100, 10)
 
 local inputColor = 2000 + 51
 
