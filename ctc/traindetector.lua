@@ -4,14 +4,15 @@ local final maxBlockage = 8
 local final tick = 20
 
 --##Function##
-function addBlockageForList(list, outtime, leaveTime)
+-- outtime, leavetime = (x)seconds
+function addBlockageForList(list, outTime, leaveTime)
 	assert(table.maxn(list) < maxBlockage, "Index Out Of Bounds (Blockage)")
 	
 	obj = {
 		passageTime = 0,
-		maxPassageTime = outtime * tick,
-		leaveTime = leaveTime * tick,
-		incolor = bit.blshift(1, table.maxn(list))
+		maxPassageTime = outTime * tick,
+		leaveTime = leavetime * tick,
+		incolor = bit.blshift(1, table.maxn(list)),
 		outcolor = bit.blshift(1, table.maxn(list) + 8)
 	}
 	
