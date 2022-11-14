@@ -132,7 +132,7 @@ Panel.pp = function(self)
 end
 
 Panel.draw = function(self)
-	self.setBackgroundColor(colors.gray)
+	self.mon.setBackgroundColor(colors.gray)
 	self.mon.clear()
 	if self.image then
 		local ig = paintutils.loadImage(self.image)
