@@ -102,7 +102,7 @@ addBlockageForList(list, "rail", 20,  7) -- 4
 
 local btns = getButtons(list)
 
-local mon = term.peripheral.wrap(monOut)
+local mon = peripheral.wrap(monOut)
 initialize(mon)
 local panel = buttons.makePanel(btns, image, mon)
 panel:draw()

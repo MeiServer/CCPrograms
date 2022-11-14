@@ -135,7 +135,8 @@ Panel.draw = function(self)
 	self.setBackgroundColor(colors.gray)
 	self.mon.clear()
 	if self.image then
-		paintutils.drawImage(self.image)
+		local ig = paintutils.loadImage(self.image)
+		paintutils.drawImage(ig, 1, 1)
 	end
 end
 
