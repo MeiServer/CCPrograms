@@ -1,5 +1,5 @@
 --##API##
-os.loadAPI("buttons")
+os.loadAPI("button_API")
 
 --##Config##
 local final railOut = "left"
@@ -77,7 +77,7 @@ function addBlockageForList(list, category, x, y)
 		isManual = false,
 		onPower = true,
 		color = bit.blshift(1, table.maxn(list)),
-		button = buttons.makeButton(color, x, x + 2, y, y, nil, StateList.default)
+		button = button_API.makeButton(color, x, x + 2, y, y, nil, StateList.default)
 	}
 	
 	table.insert(list, obj)
@@ -104,7 +104,7 @@ local btns = getButtons(list)
 
 local mon = peripheral.wrap(monOut)
 initialize(mon)
-local panel = buttons.makePanel(btns, image, mon)
+local panel = button_API.makePanel(btns, image, mon)
 panel:draw()
 
 while rs.getInput("front") do
