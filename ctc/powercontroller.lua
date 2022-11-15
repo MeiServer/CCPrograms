@@ -5,33 +5,47 @@ os.loadAPI("button_API")
 local final railOut = "left"
 local final stationOut = "right"
 local final monOut = "top"
+local final autoOut = "back"
+local final autoColor = colors.white
 local final maxBlockage = 16
 local final image = "image"
 local final StateList = {
 	default = {colors.white},
 	powerOn = {colors.green, colors.yellow, colors.white},
-	powerOff = {colors.red, colors.yellow, colors.white}
+	powerOff = {colors.red, colors.yellow, colors.white},
+	autoOn = {colors.yellow},
+	autoOff = {colors.black}
 }
 
 --##Function##
 function initialize(mon)
-	if mon ~= nil then
-		term.redirect(mon)
-		term.clear()
-		term.setCursorBlink(false)
-		mon.setTextScale(1)
+	assert(mon, "Monitor is not found")
+	term.redirect(mon)
+	term.clear()
+	term.setCursorBlink(false)
+	mon.setTextScale(1)
+end
+
+function changeAuto(btn)
+	if btn.isAuto then
+		btn:drawUpdate(StateList.autoOff)
+		rs.setBundledOutput(autoDir, 0)
+	else
+		btn:drawUpdate(StateList.autoOn)
+		rs.setBundledOutput(autoDir, autoColor)
 	end
 end
 
 function onButtonPush(list, pushX, pushY)
 	for i, v in ipairs(list) do
-		if v.x == pushX and v.y == pushY then
+		local posX, posY = v.button.start.x, v.button.start.y
+		if posX == pushX and posY == pushY then
 			if v.isManual then
-				v.onPower = v,onPower and false or true
+				v.onPower = not v.onPower
 				drawBlock(v)
 			end
-		elseif v.x + 1 == pushX and v.y == pushY then
-			v.isManual = v.isManual and false or true
+		elseif (posX + 1) == pushX and posY == pushY then
+			v.isManual = not v.isManual
 			drawBlock(v)
 		end
 	end
@@ -40,12 +54,12 @@ end
 function drawBlock(tbl)
 	if tbl.isManual then
 		if tbl.onPower then
-			v.button:drawUpdate(StateList.powerOn)
+			tbl.button:drawUpdate(StateList.powerOn)
 		else
-			v.button:drawUpdate(StateList.powerOff)
+		 tbl.button:drawUpdate(StateList.powerOff)
 		end
 	else
-		v.button:drawUpdate(StateList.default)
+		tbl.button:drawUpdate(StateList.default)
 	end
 end
 
@@ -100,7 +114,13 @@ addBlockageForList(list, "rail",  8,  7) -- 2
 addBlockageForList(list, "rail", 14,  7) -- 3
 addBlockageForList(list, "rail", 20,  7) -- 4
 
+local autoButton = {
+	isAuto = false,
+	button = button_API.makeButton("auto", 1, 2, 1, 2, nil, StateList.autoOff)
+}
+
 local btns = getButtons(list)
+table.insert(btns, autoButton)
 
 local mon = peripheral.wrap(monOut)
 initialize(mon)
@@ -109,7 +129,11 @@ panel:draw()
 
 while rs.getInput("front") do
 	local event, btn, x, y = panel:pullButtonPushEvent(monOut)
-	onButtonPush(list, x, y)
+	if btn.name ~= "auto" and autoButton.isAuto then
+		onButtonPush(list, x, y)
+	else
+		changeAuto(autoButton)
+	end
 	sleep(0)
 end
 
