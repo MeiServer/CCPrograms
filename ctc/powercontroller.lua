@@ -26,13 +26,17 @@ function initialize(mon)
 	mon.setTextScale(1)
 end
 
-function changeAuto(btn)
-	if btn.isAuto then
-		btn:drawUpdate(StateList.autoOff)
+function changeAuto(tbl)
+	if tbl.isAuto then
+		tbl.button:drawUpdate(StateList.autoOff)
 		rs.setBundledOutput(autoDir, 0)
+		tbl.isAuto = not tbl.isAuto
+		return true
 	else
-		btn:drawUpdate(StateList.autoOn)
+		tbl.button:drawUpdate(StateList.autoOn)
 		rs.setBundledOutput(autoDir, autoColor)
+		tbl.isAuto = not tbl.isAuto
+		return false
 	end
 end
 
@@ -120,7 +124,7 @@ local autoButton = {
 }
 
 local btns = getButtons(list)
-table.insert(btns, autoButton)
+table.insert(btns, autoButton.button)
 
 local mon = peripheral.wrap(monOut)
 initialize(mon)
@@ -132,7 +136,9 @@ while rs.getInput("front") do
 	if btn.name ~= "auto" and autoButton.isAuto then
 		onButtonPush(list, x, y)
 	else
-		changeAuto(autoButton)
+		if changeAuto(autoButton) then
+			break
+		end
 	end
 	sleep(0)
 end
