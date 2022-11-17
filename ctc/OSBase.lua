@@ -9,7 +9,7 @@ OSBase.config = {
 	isReseive = true,
 	sendID = "",
 	modemSide = "top",
-	dataName - ""
+	dataName = ""
 }
 
 --##Function
@@ -21,7 +21,7 @@ OSBase.new = function()
 	return setmetatable(obj, {__index = OSBase})
 end
 
-OSBase.addDate = function(self, ...)
+OSBase.addData = function(self, ...)
 	local list = {...}
 	for k, v in pairs(list) do
 		if k == "pre" or k == "middle" or k == "post" then
@@ -49,6 +49,21 @@ OSBase.slowPrintT = function(table, rate)
 	for i, v in pairs(table) do
 		textutils.slowPrint(v, rate)
 		y = y + 1
+	end
+end
+
+OSBase.crearOutput = function()
+	local dir = {
+		"front",
+		"back",
+		"top",
+		"bottom",
+		"right",
+		"left"
+	}
+	
+	for i, v in ipairs(dir) do
+		rs.setBundledOutput(v, 0)
 	end
 end
 
@@ -97,7 +112,7 @@ end
 OSBase.reseiveData = function(self)
 	rednet.open(self.config.modemSide)
 	if rednet.isOpen(self.config.modemSide) then
-		if rednet.send(self.config.sendID, dataName, true) then
+		if rednet.send(self.config.sendID, self.config.dataName, true) then
 			local id, data, distance = os.pullEvent("rednet_message")
 			if id == self.config.sendID and data then
 				local tbl = textutils.unserialize(data)
@@ -116,21 +131,23 @@ OSBase.main = function(self)
 		local count = self.config.repeatPass
 		while count > 0 do
 			if self:checkPass() then
-				self:middleMain()
 				break
 			end
 			count = count - 1
 		end
 	end
+
+	self:middleMain()
 	
 	if self.config.isReceive then
 		data = self:receiveData()
 	end
 	
 	if program ~= "" then
-		shell.run(program, data)
+		assert(shell.run(program, data), string.format("%s is not Found", program))
 	end
 
+	self.clearOutput()
 	self:postMain()
 end
 
