@@ -2,27 +2,26 @@ local OSBase = {}
 
 --##Config##
 OSBase.config = {
-	program = "",
 	pass = "pass",
 	repeatPass = 0,
 	usePass = false,
-	isReseive = true,
+	isReseive = false,
 	sendID = "",
 	modemSide = "top",
 	dataName = ""
 }
 
 --##Function
-OSBase.new = function()
+OSBase.new = function(mainfunc)
 	local obj = {}
+	obj.main = mainfunc
 	obj.pre = nil
 	obj.middle = nil
 	obj.post = nil
 	return setmetatable(obj, {__index = OSBase})
 end
 
-OSBase.addData = function(self, ...)
-	local list = {...}
+OSBase.addData = function(self, tbl)
 	for k, v in pairs(list) do
 		if k == "pre" or k == "middle" or k == "post" then
 			self[k] = v
@@ -38,9 +37,9 @@ OSBase.clearAll = function()
 	term.setBackgroundColor(colors.black)
 end
 
-OSBase.errPrint = function(text)
+OSBase.errPrint = function(...)
 	term.setTextColor(colors.red)
-	print(text)
+	print(...)
 	term.setTextColor(colors.white)
 end
 
@@ -52,7 +51,7 @@ OSBase.slowPrintT = function(table, rate)
 	end
 end
 
-OSBase.crearOutput = function()
+OSBase.clearOutput = function()
 	local dir = {
 		"front",
 		"back",
@@ -110,11 +109,12 @@ OSBase.checkPass = function(self)
 end
 
 OSBase.reseiveData = function(self)
-	rednet.open(self.config.modemSide)
-	if rednet.isOpen(self.config.modemSide) then
-		if rednet.send(self.config.sendID, self.config.dataName, true) then
+	local cfg = self.config
+	rednet.open(cfg.modemSide)
+	if rednet.isOpen(cfg.modemSide) then
+		if rednet.send(cfg.sendID, cfg.dataName, true) then
 			local id, data, distance = os.pullEvent("rednet_message")
-			if id == self.config.sendID and data then
+			if id == cfg.sendID and data then
 				local tbl = textutils.unserialize(data)
 				if type(tbl) == "table" then
 					return tbl
@@ -125,10 +125,11 @@ OSBase.reseiveData = function(self)
 end
 
 OSBase.main = function(self)
+	local cfg = self.config
 	local data = nil
 	self:preMain()
-	if self.config.usePass then
-		local count = self.config.repeatPass
+	if cfg.usePass then
+		local count = cfg.repeatPass
 		while count > 0 do
 			if self:checkPass() then
 				break
@@ -139,12 +140,12 @@ OSBase.main = function(self)
 
 	self:middleMain()
 	
-	if self.config.isReceive then
+	if cfg.isReceive then
 		data = self:receiveData()
 	end
 	
-	if program ~= "" then
-		assert(shell.run(program, data), string.format("%s is not Found", program))
+	if self.main then
+		assert(self.main(), "This program is not run")
 	end
 
 	self.clearOutput()
@@ -152,6 +153,6 @@ OSBase.main = function(self)
 end
 
 --##API##
-function createOS()
-	return OSBase.new()
+function createOS(mainfunc)
+	return OSBase.new(mainfunc)
 end
