@@ -5,7 +5,7 @@ OSBase.config = {
 	pass = "pass",
 	repeatPass = 0,
 	usePass = false,
-	isReseive = false,
+	isReceive = false,
 	sendID = "",
 	modemSide = "top",
 	dataName = ""
@@ -109,19 +109,20 @@ OSBase.checkPass = function(self)
 	end
 end
 
-OSBase.reseiveData = function(self)
+OSBase.receiveData = function(self)
 	local cfg = self.config
 	rednet.open(cfg.modemSide)
-	if rednet.isOpen(cfg.modemSide) then
-		if rednet.send(cfg.sendID, cfg.dataName, true) then
-			local id, data, distance = os.pullEvent("rednet_message")
-			if id == cfg.sendID and data then
-				if type(data) == "string" then
-					return data
-				end
-			end
-		end
+	assert(rednet.isOpen(cfg.modemSide), string.format("rednet is not opend (%s)", cfg.modemSide))
+	rednet.send(cfg.sendID, cfg.dataName)
+	local event, id, data, distance = os.pullEvent("rednet_message")
+	assert((id == cfg.sendID and data), "data is nil (or id is different)")
+	assert(type(data) == "string", string.format("data is not string(%s)", type(data)))
+	rednet.close(cfg.modemSide)
+	if data == "retry" then
+		-- if fail send data 
+		self:receiveData()
 	end
+	return data
 end
 
 OSBase.main = function(self)
@@ -140,7 +141,7 @@ OSBase.main = function(self)
 	self:middleMain()
 	
 	if cfg.isReceive then
-		obj.data = self:receiveData()
+		self.data = self:receiveData()
 	end
 	
 	if self.main then

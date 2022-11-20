@@ -1,5 +1,6 @@
 --##Config##
 local final tick = 20
+local final isSendRetry = false
 local final maxElement = 16
 local final modemSide = "top"
 local final inputSide = "front"
@@ -42,7 +43,7 @@ function addBlockageForList(list, category, outtime, leavetime)
 	obj.category = category
 	obj.isOccluded = false
 	
-	if not category == Category.next then
+	if not (category == Category.next) then
 		obj.name = list.elements
 		obj.isManual = false
 		obj.onPower = true
@@ -51,10 +52,11 @@ function addBlockageForList(list, category, outtime, leavetime)
 		
 		if category == Category.rail then
 			obj.passageTime = 0
-			obj.maxPassageTime = outtime * tick
+			obj.maxPassageTime = (outtime * tick)
 			obj.leaveTime = leavetime * tick
 		end
 	end
+	table.insert(blockList, obj)
 end
 
 --##Data##
@@ -64,15 +66,17 @@ addBlockageForList(list[1],    Category.rail, 100, 	10)
 addBlockageForList(list[1],    Category.rail,  90, 	10)
 addBlockageForList(list[1],    Category.rail,  80, 	10)
 addBlockageForList(list[1],    Category.rail,  70, 	10)
-addBlockageForList(list[1], Category.station, nil, nil)
+addBlockageForList(list[1], Category.station,   0,   0)
 addBlockageForList(list[1],    Category.rail,  50, 	10)
 addBlockageForList(list[1],    Category.rail,  40, 	10)
 addBlockageForList(list[1],    Category.rail,  30, 	10)
 addBlockageForList(list[1],    Category.rail,  20, 	10)
-addBlockageForList(list[1],    Category.next, nil, nil)
+addBlockageForList(list[1],    Category.next,   0,   0)
 
 --##Main##
 rednet.open(modemSide)
+local hour, min = math.modf( os.time() )
+local oldmin = math.floor( min * 60 )
 
 while rs.getInput("back") do
 	if not rednet.isOpen(modemSide) then
@@ -83,6 +87,16 @@ while rs.getInput("back") do
 	
 	if id and str and distance then
 		rednet.send(id, textutils.serialize(list[str]), true)
+	end
+	if isSendRetry then
+		hour, min = math.modf( os.time() )
+		min = math.floor( min * 60 )
+	
+		if min > oldmin + 1 then
+			oldmin = min
+			rednet.send(65535, "retry")
+			print("send retrymessage: "..hour.." : "..min)
+		end
 	end
 end
 
