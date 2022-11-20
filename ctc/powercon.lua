@@ -1,5 +1,6 @@
 --##API##
 os.loadAPI("button_API")
+os.loadAPI("tables")
 
 --##Config##
 local final railir = "left"
@@ -122,7 +123,7 @@ end
 
 
 --##Main##
-local list = {...}
+local list = argsIntoTable(...)
 list = addButtonForList(getBlockageMixList(list))
 
 
