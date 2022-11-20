@@ -14,10 +14,11 @@ OSBase.config = {
 --##Function
 OSBase.new = function(mainfunc)
 	local obj = {}
-	obj.main = mainfunc
+	obj.func = mainfunc
 	obj.pre = nil
 	obj.middle = nil
 	obj.post = nil
+	obj.data = nil
 	return setmetatable(obj, {__index = OSBase})
 end
 
@@ -115,9 +116,8 @@ OSBase.reseiveData = function(self)
 		if rednet.send(cfg.sendID, cfg.dataName, true) then
 			local id, data, distance = os.pullEvent("rednet_message")
 			if id == cfg.sendID and data then
-				local tbl = textutils.unserialize(data)
-				if type(tbl) == "table" then
-					return tbl
+				if type(data) == "string" then
+					return data
 				end
 			end
 		end
@@ -126,7 +126,6 @@ end
 
 OSBase.main = function(self)
 	local cfg = self.config
-	local data = nil
 	self:preMain()
 	if cfg.usePass then
 		local count = cfg.repeatPass
@@ -141,11 +140,11 @@ OSBase.main = function(self)
 	self:middleMain()
 	
 	if cfg.isReceive then
-		data = self:receiveData()
+		obj.data = self:receiveData()
 	end
 	
 	if self.main then
-		assert(self.main(), "This program is not run")
+		assert(self.func(self.data), "This program is not run")
 	end
 
 	self.clearOutput()
