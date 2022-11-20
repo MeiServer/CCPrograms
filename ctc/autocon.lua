@@ -1,3 +1,6 @@
+--##API##
+os.loadAPI("tables")
+
 --##Config##
 local final railoutDir = "front"
 local final stationoutDir = "back"
@@ -72,7 +75,7 @@ function onUpdate(railIn, stationIn, list)
 end
 
 --##Main##
-local list = {...}
+local list = tables.argsIntoTable(...)
 
 while rs.testBundledInput(manualDir, manualColor) do
 	local railIn = rs.getBundledInput(railinDir)
