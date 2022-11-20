@@ -5,7 +5,7 @@ OSBase.config = {
 	pass = "pass",
 	repeatPass = 0,
 	usePass = false,
-	isReceive = false,
+	isReceive = true,
 	sendID = "",
 	modemSide = "top",
 	dataName = ""
@@ -144,7 +144,7 @@ OSBase.main = function(self)
 		self.data = self:receiveData()
 	end
 	
-	if self.main then
+	if self.func then
 		assert(self.func(self.data), "This program is not run")
 	end
 
