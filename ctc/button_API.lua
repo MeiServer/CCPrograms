@@ -40,7 +40,7 @@ Rectangle.draw = function(self)
 	local default = type(self.pattern) == "table" and self.pattern[1] or colors.gray
 	term.setBackgroundColor(default)
 	for y=self.start.y, self.goal.y do
-		term.setCursorPos(self.start.x, self.start.y)
+		term.setCursorPos(self.start.x, y)
 		local colortbl = self.pattern
 		if #colortbl > 1 then
     		for i, color in ipairs(colortbl) do
