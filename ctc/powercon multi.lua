@@ -100,7 +100,7 @@ function addButtonForList(list, x, y)
 		
 		if type(v.name) == "string" then
 			local s = strings.split(v.name, "-")
-			posX = tonumber(s[1])
+			posX = list[tonumber(s[1])]
 		else
 			posX = x + 4 * (v.name - 1)
 		end
@@ -117,7 +117,12 @@ function getBlockageMixList(list)
 		obj[v.name] = v
 	end
 	for i, v in ipairs(list.station) do
-		obj[v.name] = v
+		local name = v.name
+		if type(v.name) == "string" then
+			local s = strings.split(v.name, "-")
+			name = tonumber(s[1]..0..s[2])
+		end
+		obj[name] = v
 	end
 	return obj
 end
