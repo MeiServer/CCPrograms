@@ -1,7 +1,6 @@
 --##API##
 os.loadAPI("button_API")
 os.loadAPI("strings")
-os.loadAPI("tables")
 
 --##Config##
 local final railir = "left"
@@ -30,7 +29,7 @@ end
 function changeAuto(tbl)
 	if tbl.isAuto then
 		tbl.button:drawUpdate(StateList.autoOff)
-		rs.setBundledOutput(autoOut, 0)
+		rs.setBundledOutput(autoDir, 0)
 		tbl.isAuto = not tbl.isAuto
 		return true
 	else
@@ -78,7 +77,7 @@ function onUpdate(list, x, y)
 	
 	for i, v in ipairs(list) do
 		local num = 1
-		if v.category == "station" then
+		if string.find(v.category, "station") then
 			num = 2
 		end
 		
@@ -99,8 +98,7 @@ function addButtonForList(list, x, y)
 		end
 		
 		if type(v.name) == "string" then
-			local s = strings.split(v.name, "-")
-			posX = list[tonumber(s[1])]
+			posX = x + 4 * (tonumber(v.name:match("([^-]+)")) - 1)
 		else
 			posX = x + 4 * (v.name - 1)
 		end
@@ -119,8 +117,8 @@ function getBlockageMixList(list)
 	for i, v in ipairs(list.station) do
 		local name = v.name
 		if type(v.name) == "string" then
-			local s = strings.split(v.name, "-")
-			name = tonumber(s[1]..0..s[2])
+			local s = string.gsub(v.name, "-", "0")
+			name = tonumber(s)
 		end
 		obj[name] = v
 	end
