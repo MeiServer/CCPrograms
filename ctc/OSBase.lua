@@ -5,7 +5,7 @@ OSBase.config = {
 	pass = "pass",
 	repeatPass = 0,
 	usePass = false,
-	isReceive = true,
+	isReceive = false,
 	sendID = "",
 	modemSide = "top",
 	dataName = ""
@@ -30,6 +30,11 @@ OSBase.addData = function(self, tbl)
 	end
 end
 
+OSBase.useNet(self, id, data)
+	assert(type(id) == "number", string.format(id.." is not number(%s)", type(id)))
+	self.config.isReceive = true
+	self.config.sendID = id
+	self.config.dataName = data
 
 OSBase.clearAll = function()
 	term.clear()
@@ -144,7 +149,7 @@ OSBase.main = function(self)
 		self.data = self:receiveData()
 	end
 	
-	if self.func then
+	if self.main then
 		assert(self.func(self.data), "This program is not run")
 	end
 

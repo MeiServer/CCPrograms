@@ -61,17 +61,18 @@ end
 
 --##Data##
 list = {}
-list[1] = makeList(2, 7)
-addBlockageForList(list[1],    Category.rail, 100, 	10)
-addBlockageForList(list[1],    Category.rail,  90, 	10)
-addBlockageForList(list[1],    Category.rail,  80, 	10)
-addBlockageForList(list[1],    Category.rail,  70, 	10)
-addBlockageForList(list[1], Category.station,   0,   0)
-addBlockageForList(list[1],    Category.rail,  50, 	10)
-addBlockageForList(list[1],    Category.rail,  40, 	10)
-addBlockageForList(list[1],    Category.rail,  30, 	10)
-addBlockageForList(list[1],    Category.rail,  20, 	10)
-addBlockageForList(list[1],    Category.next,   0,   0)
+test = makeList(2, 7)
+addBlockageForList(test,    Category.rail, 100, 	10)
+addBlockageForList(test,    Category.rail,  90, 	10)
+addBlockageForList(test,    Category.rail,  80, 	10)
+addBlockageForList(test,    Category.rail,  70, 	10)
+addBlockageForList(test, Category.station,   0,   0)
+addBlockageForList(test,    Category.rail,  50, 	10)
+addBlockageForList(test,    Category.rail,  40, 	10)
+addBlockageForList(test,    Category.rail,  30, 	10)
+addBlockageForList(test,    Category.rail,  20, 	10)
+addBlockageForList(test,    Category.next,   0,   0)
+list.test = test
 
 --##Main##
 rednet.open(modemSide)
@@ -83,7 +84,7 @@ while rs.getInput("back") do
 		break
 	end
 	
-	local id, str, distance = os.pullEvent("rednet_message")
+	local event, id, str, distance = os.pullEvent("rednet_message")
 	
 	if id and str and distance then
 		rednet.send(id, textutils.serialize(list[str]), true)
