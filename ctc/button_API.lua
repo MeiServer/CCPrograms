@@ -1,4 +1,3 @@
-
 --##Coordinate##
 local Coordinate = {}
 
@@ -37,24 +36,23 @@ Rectangle.new = function(startX, startY, goalX, goalY, pattern)
   return setmetatable(obj, {__index = Rectangle})
 end
 
-Rectangle.draw = function(self, mon)
-	local default = #self.pattern == 1 and self.pattern[1] or colors.gray
-	mon.setBackgroundColor(default)
+Rectangle.draw = function(self)
+	local default = type(self.pattern) == "table" and self.pattern[1] or colors.gray
+	term.setBackgroundColor(default)
 	for y=self.start.y, self.goal.y do
-		mon.setCursorPos(self.start.x, self.start.y)
-		local colors = self.pattern
-		if colors then
-    		for i, color in ipairs(colors) do
-    			mon.setBackgroundColor(color)
-    			mon.write(" ")
+		term.setCursorPos(self.start.x, self.start.y)
+		local colortbl = self.pattern
+		if #colortbl > 1 then
+    		for i, color in ipairs(colortbl) do
+    			term.setBackgroundColor(color)
+    			term.write(" ")
 			end
 		else
 			for x=self.start.x, self.goal.x do
-      			mon.write(" ")
+      			term.write(" ")
 			end
 		end
 	end
-	
 end
 
 --##Button##
@@ -79,20 +77,20 @@ Button.pp = function(self)
     	self.name, self.start.x, self.start.y, self.goal.x, self.goal.y, str_cmd))
 end
 
-Button.isWitin = function(self, point)
+Button.isWithin = function(self, point)
 	local function within(n, start, goal)
 		return n >= start and n <= goal
 	end
 	return within(point.x, self.start.x, self.goal.x) and within(point.y, self.start.y, self.goal.y)
 end
 
-Button.draw = function(self, mon)
-	Rectangle:draw(mon)
+Button.draw = function(self)
+	Rectangle.draw(self)
 end
 
-Button.drawUpdate = function(self, mon, newPattern)
-	Rectangle.colorPattern = newPattern
-	Rectangle:draw(mon)
+Button.drawUpdate = function(self, newPattern)
+	self.pattern = newPattern
+	Rectangle.draw(self)
 end
 
 Button.evalCmd = function(self, ...)
@@ -143,27 +141,34 @@ end
 Panel.pullButtonPushEvent = function(self, mondir)
 	local pushed_btn = false
 	local whichButton = function(btns, x, y)
-    	for i ,v in ipairs(btns) do
-    		if v:isWithin(Coordinate.new(x, y)) then
-    			pushed_btn = b
-    			break
-    		end
+		for i ,v in ipairs(btns) do
+			if v:isWithin(Coordinate.new(x, y)) then
+				pushed_btn = v
+				break
+			end
 		end
 	end
-  
-	repeat
-    	if self.mon.setTextScale then
-    		local event, dir, x, y = os.pullEvent("monitor_touch")
-    		if not mondir or mondir == dir  then
-    			whichButton(self.btns, x, y)
-    		end
-    	else -- when self.mon is term
-	    	local event, mouse, x, y = os.pullEvent("mouse_click")
-    		whichButton(self.btns, x, y)
-    	end
-	until  pushed_btn
  
-	return "button_push", pushed_btn, x, y
+	local pushX, pushY
+ 	repeat
+		if self.mon.setTextScale then
+			local event, dir, x, y = os.pullEvent("monitor_touch")
+			if not mondir or mondir == dir  then
+				whichButton(self.btns, x, y)
+				pushX, pushY = x, y
+			end
+		else -- when self.mon is term
+			local event, mouse, x, y = os.pullEvent("mouse_click")
+			whichButton(self.btns, x, y)
+			pushX, pushY = x, y
+		end
+	until  pushed_btn
+
+	return "button_push", pushed_btn, pushX, pushY
+end
+
+Panel.addButton = function(self, btn)
+	table.insert(self.btns, btn)
 end
 
 --##API Function##
