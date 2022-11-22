@@ -3,7 +3,7 @@ os.loadAPI("button_API")
 os.loadAPI("tables")
 
 --##Config##
-local final railir = "left"
+local final railDir = "left"
 local final stationDir = "right"
 local final turnoutDir = "front"
 local final monDir = "top"
@@ -27,6 +27,17 @@ function initialize(mon)
 	term.clear()
 	term.setCursorBlink(false)
 	mon.setTextScale(1)
+end
+
+function initData(list)
+	rs.setBundledOutput(railDir, 0)
+	rs.setBundledOutput(stationDir, 0)
+	rs.setBundledOutput(autoDir, 0)
+	for k, v in pairs(list) do
+		v.isManual = false
+		v.onPower = true
+		v.button.pattern = StateList.default
+	end
 end
 
 function changeAuto(tbl)
@@ -108,9 +119,9 @@ function onUpdate(list, x, y)
 		end
 	end
 		
-	rs.setBundledOutput(colors[1], railDir)
-	rs.setBundledOutput(colors[2], stationDir)
-	rs.setBundledOutput(colors[3], turnoutDir)
+	rs.setBundledOutput(railDir, colors[1])
+	rs.setBundledOutput(stationDir, colors[2])
+	rs.setBundledOutput(turnoutDir, colors[3])
 end
 
 function addButtonForList(list, x, y)
@@ -187,7 +198,7 @@ while rs.getInput("front") do
 		onButtonPush(list, x, y, autoButton.isAuto)
 	elseif btn.name == "auto" then
 		if changeAuto(autoButton) then
-			break
+			initData(list)
 		end
 	end
 	sleep(0)
