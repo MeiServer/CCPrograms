@@ -43,21 +43,23 @@ function changeAuto(tbl)
 	end
 end
 
-function onButtonPush(list, pushX, pushY)
+function onButtonPush(list, pushX, pushY, isAuto)
 	for k, v in pairs(list) do
 		local posX, posY = v.button.start.x, v.button.start.y
-		if category ~= "turnout" then
-			if posX == pushX and posY == pushY then
-				if v.isManual then
-					v.onPower = not v.onPower
+		if v.category ~= "turnout" then
+			if isAuto then
+				if posX == pushX and posY == pushY then
+					if v.isManual then
+						v.onPower = not v.onPower
+						drawBlock(v)
+					end
+				elseif (posX + 1) == pushX and posY == pushY then
+					v.isManual = not v.isManual
+					if not v.isManual then
+						v.onPower = true
+					end
 					drawBlock(v)
 				end
-			elseif (posX + 1) == pushX and posY == pushY then
-				v.isManual = not v.isManual
-				if not v.isManual then
-					v.onPower = true
-				end
-				drawBlock(v)
 			end
 		else
 			if posX == pushX and posY == pushY then
@@ -112,24 +114,27 @@ function onUpdate(list, x, y)
 end
 
 function addButtonForList(list, x, y)
-	local minX, maxX, minY, maxY = x, x, y, y
+	local minX, maxX, y = x, x, y
 	for k, v in pairs(list) do
-		minX = x + 4 * (v.name - 1)
-		maxX = minX + 2
+		if type(v.name) == "number" then
+			minX = x + 4 * (v.name - 1)
+			maxX = minX + 2
+		end
 		
 		if string.find(v.category, "station") then
-			minY = maxY = v.drawY
+			y = v.drawY
 			
 			if type(v.name) == "string" then
-				posX = list[tonumber(v.name:match("[%d]"))]
+				minX = x + 4 * (tonumber(v.name:match("[%d]")) - 1)
+				maxX = minX + 2
 			end
-		elseif v.category = "turnout" then
-			minX = maxX = v.drawX
-			minY = maxY = v.drawY
+		elseif v.category == "turnout" then
+			minX, maxX = v.drawX, v.drawX
+			y = v.drawY
 		end
 		
 		v.button = button_API.makeButton(
-			v.name, minX, maxX, minY, maxY, nil, StateList.default)
+			v.name, minX, maxX, y, y, nil, StateList.default)
 	end
 	return list
 end
@@ -140,17 +145,10 @@ function getBlockageMixList(list)
 		obj[v.name] = v
 	end
 	for i, v in ipairs(list.station) do
-		local name = v.name
-		if type(v.name) == "string" then
-			local s = v.name.gsub("-", "0")
-			name = tonumber(s)
-		end
-		obj[name] = v
+		obj[v.name] = v
 	end
 	for i, v in ipairs(list.turnout) do
-		local name = v.name.gsub("-turn", "99")
-		name = tonumber(name)
-		obj[name] = v
+		obj[v.name] = v
 	end
 	return obj
 end
@@ -185,8 +183,8 @@ panel:draw()
 
 while rs.getInput("front") do
 	local event, btn, x, y = panel:pullButtonPushEvent(monDir)
-	if btn.name ~= "auto" and autoButton.isAuto then
-		onButtonPush(list, x, y)
+	if btn.name ~= "auto" then
+		onButtonPush(list, x, y, autoButton.isAuto)
 	elseif btn.name == "auto" then
 		if changeAuto(autoButton) then
 			break
