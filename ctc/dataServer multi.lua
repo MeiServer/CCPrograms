@@ -7,7 +7,8 @@ local final inputSide = "front"
 local final Category = {
 	rail = "rail",
 	station = "station",
-	stationNP = "stationNotPass"
+	stationNP = "stationNotPass",
+	turnout = "turnout",
 	next = "next"
 }
 
@@ -65,6 +66,18 @@ StationBlock.pp = function(self)
 	Block.pp(self)
 end
 
+--##Turnout##
+local Turnout = {}
+
+Turnout.new = function(name, color, x, y)
+	name = name.."-turn"
+	local obj = Block.new(Category.turnout, name, color)
+	obj.onPower = false
+	obj.drawX = x
+	obj.drawY = y
+	return obj
+end
+
 --##Function##
 function makeList(x, y)
 	local obj = {}
@@ -93,7 +106,10 @@ function addBlockageForList(list, category, ...)
 	elseif category == Category.stationNP then
 		blockList = list.station
 		obj = StationBlock.new(list.elements, bit.blshift(1, table.maxn(blockList)), false, ...)
-	elseif category  == Category.next then
+	elseif category == Category.turnout then
+		blockList = list.turnout
+		obj = Turnout.new(list.elements, bit.blshift(1, table.maxn(blockList), ...))
+	elseif category == Category.next then
 		blockList = list.next
 		obj = Block.new("next", bit.blshift(1, table.maxn(blockList)))
 		assert(table.maxn(blockList) < 1, string.format("Index Out Of Bounds (%s)", category))
@@ -106,17 +122,18 @@ end
 --##Data##
 list = {}
 test = makeList(2, 7)
-addBlockageForList(test,    Category.rail, 100, 	10)
-addBlockageForList(test,    Category.rail,  90, 	10)
-addBlockageForList(test,    Category.rail,  80, 	10)
-addBlockageForList(test,    Category.rail,  70, 	10)
-addBlockageForList(test, Category.station,   10)
+addBlockageForList(test,      Category.rail, 100, 	10)
+addBlockageForList(test,      Category.rail,  90, 	10)
+addBlockageForList(test,      Category.rail,  80, 	10)
+addBlockageForList(test,      Category.rail,  70, 	10)
+addBlockageForList(test,   Category.turnout,  24,    8)
+addBlockageForList(test,   Category.station,  10)
 addBlockageForList(test, Category.stationNP,   8)
-addBlockageForList(test,    Category.rail,  50, 	10)
-addBlockageForList(test,    Category.rail,  40, 	10)
-addBlockageForList(test,    Category.rail,  30, 	10)
-addBlockageForList(test,    Category.rail,  20, 	10)
-addBlockageForList(test,    Category.next)
+addBlockageForList(test,      Category.rail,  50, 	10)
+addBlockageForList(test,      Category.rail,  40, 	10)
+addBlockageForList(test,      Category.rail,  30, 	10)
+addBlockageForList(test,      Category.rail,  20, 	10)
+addBlockageForList(test,      Category.next)
 list.test = test
 
 --##Main##
