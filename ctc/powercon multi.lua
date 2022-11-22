@@ -1,10 +1,11 @@
 --##API##
 os.loadAPI("button_API")
-os.loadAPI("strings")
+os.loadAPI("tables")
 
 --##Config##
 local final railir = "left"
 local final stationDir = "right"
+local final turnoutDir = "front"
 local final monDir = "top"
 local final autoDir = "back"
 local final autoColor = colors.white
@@ -14,7 +15,9 @@ local final StateList = {
 	powerOn = {colors.green, colors.yellow, colors.white},
 	powerOff = {colors.red, colors.yellow, colors.white},
 	autoOn = {colors.yellow},
-	autoOff = {colors.black}
+	autoOff = {colors.black},
+	turnOn = {colors.orange},
+	turnOff = {colors.blue}
 }
 
 --##Function##
@@ -41,19 +44,26 @@ function changeAuto(tbl)
 end
 
 function onButtonPush(list, pushX, pushY)
-	for i, v in ipairs(list) do
+	for k, v in pairs(list) do
 		local posX, posY = v.button.start.x, v.button.start.y
-		if posX == pushX and posY == pushY then
-			if v.isManual then
-				v.onPower = not v.onPower
+		if category ~= "turnout" then
+			if posX == pushX and posY == pushY then
+				if v.isManual then
+					v.onPower = not v.onPower
+					drawBlock(v)
+				end
+			elseif (posX + 1) == pushX and posY == pushY then
+				v.isManual = not v.isManual
+				if not v.isManual then
+					v.onPower = true
+				end
 				drawBlock(v)
 			end
-		elseif (posX + 1) == pushX and posY == pushY then
-			v.isManual = not v.isManual
-			if not v.isManual then
-				v.onPower = true
+		else
+			if posX == pushX and posY == pushY then
+				v.onPower = not v.onPower
+				drawTurnout(v)
 			end
-			drawBlock(v)
 		end
 	end
 end
@@ -70,15 +80,25 @@ function drawBlock(tbl)
 	end
 end
 
+function drawTurnout(tbl)
+	if tbl.onPower then
+		tbl.button:drawUpdate(StateList.turnOff)
+	else
+		tbl.button:drawUpdate(StateList.turnOn)
+	end
+end
+
 function onUpdate(list, x, y)
 	onButtonPush(list, x, y)
 	
-	local colors = {[1] = 0, [2] = 0}
+	local colors = {[1] = 0, [2] = 0, [3] = 0}
 	
-	for i, v in ipairs(list) do
+	for k, v in pairs(list) do
 		local num = 1
 		if string.find(v.category, "station") then
 			num = 2
+		elseif v.category == "turnout" then
+			num = 3
 		end
 		
 		if not v.onPower then
@@ -88,23 +108,28 @@ function onUpdate(list, x, y)
 		
 	rs.setBundledOutput(colors[1], railDir)
 	rs.setBundledOutput(colors[2], stationDir)
+	rs.setBundledOutput(colors[3], turnoutDir)
 end
 
 function addButtonForList(list, x, y)
-	local posX, posY = x, y
-	for i, v in ipairs(list) do
-		if string.find(v.category, "station") then
-			posY = v.drawY
-		end
+	local minX, maxX, minY, maxY = x, x, y, y
+	for k, v in pairs(list) do
+		minX = x + 4 * (v.name - 1)
+		maxX = minX + 2
 		
-		if type(v.name) == "string" then
-			posX = x + 4 * (tonumber(v.name:match("([^-]+)")) - 1)
-		else
-			posX = x + 4 * (v.name - 1)
+		if string.find(v.category, "station") then
+			minY = maxY = v.drawY
+			
+			if type(v.name) == "string" then
+				posX = list[tonumber(v.name:match("[%d]"))]
+			end
+		elseif v.category = "turnout" then
+			minX = maxX = v.drawX
+			minY = maxY = v.drawY
 		end
 		
 		v.button = button_API.makeButton(
-			v.name, posX, posX + 2, y, y, nil, StateList.default)
+			v.name, minX, maxX, minY, maxY, nil, StateList.default)
 	end
 	return list
 end
@@ -117,9 +142,14 @@ function getBlockageMixList(list)
 	for i, v in ipairs(list.station) do
 		local name = v.name
 		if type(v.name) == "string" then
-			local s = string.gsub(v.name, "-", "0")
+			local s = v.name.gsub("-", "0")
 			name = tonumber(s)
 		end
+		obj[name] = v
+	end
+	for i, v in ipairs(list.turnout) do
+		local name = v.name.gsub("-turn", "99")
+		name = tonumber(name)
 		obj[name] = v
 	end
 	return obj
@@ -127,7 +157,7 @@ end
 
 function getButtons(list)
 	local btns = {}
-	for i, v in ipairs(list) do
+	for k, v in pairs(list) do
 		local btn = v.button
 		table.insert(btns, btn)
 	end
