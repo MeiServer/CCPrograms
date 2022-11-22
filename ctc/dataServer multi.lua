@@ -78,6 +78,12 @@ Turnout.new = function(name, color, x, y)
 	return obj
 end
 
+Turnout.pp = function(self)
+	print(string.format("DrawX Pos: %d", self.drawX))
+	print(string.format("DrawY Pos: %d", self.drawY))
+	Block.pp(self)
+end
+
 --##Function##
 function makeList(x, y)
 	local obj = {}
@@ -86,6 +92,7 @@ function makeList(x, y)
 	obj.elements = 0
 	obj.rail = {}
 	obj.station = {}
+	obj.turnout = {}
 	obj.next = {}
 
 	return obj
@@ -108,7 +115,7 @@ function addBlockageForList(list, category, ...)
 		obj = StationBlock.new(list.elements, bit.blshift(1, table.maxn(blockList)), false, ...)
 	elseif category == Category.turnout then
 		blockList = list.turnout
-		obj = Turnout.new(list.elements, bit.blshift(1, table.maxn(blockList), ...))
+		obj = Turnout.new(list.elements, bit.blshift(1, table.maxn(blockList)), ...)
 	elseif category == Category.next then
 		blockList = list.next
 		obj = Block.new("next", bit.blshift(1, table.maxn(blockList)))
