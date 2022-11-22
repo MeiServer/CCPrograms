@@ -38,6 +38,7 @@ function initData(list)
 		v.onPower = true
 		if v.category ~= "turnout" then
 			v.button:drawUpdate(StateList.default)
+		end
 	end
 end
 
