@@ -36,7 +36,8 @@ function initData(list)
 	for k, v in pairs(list) do
 		v.isManual = false
 		v.onPower = true
-		v.button.pattern = StateList.default
+		if v.category ~= "turnout" then
+			v.button:drawUpdate(StateList.default)
 	end
 end
 
