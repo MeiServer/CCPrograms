@@ -103,8 +103,8 @@ function drawTurnout(tbl)
 	end
 end
 
-function onUpdate(list, x, y)
-	onButtonPush(list, x, y)
+function onUpdate(list, x, y, isAuto)
+	onButtonPush(list, x, y, isAuto)
 	
 	local colors = {[1] = 0, [2] = 0, [3] = 0}
 	
@@ -197,10 +197,10 @@ panel:draw()
 while rs.getInput("front") do
 	local event, btn, x, y = panel:pullButtonPushEvent(monDir)
 	if btn.name ~= "auto" then
-		onButtonPush(list, x, y, autoButton.isAuto)
+		onUpdate(list, x, y, autoButton.isAuto)
 	elseif btn.name == "auto" then
 		if changeAuto(autoButton) then
-			initData(list)
+			break
 		end
 	end
 	sleep(0)
