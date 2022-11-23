@@ -18,11 +18,11 @@ function getBlockageMixList(list)
 		obj[v.name] = v
 	end
 	for i, v in ipairs(list.station) do
-		if type(v) == "number" then
+		if v.category ~= "stationNP" then
 			obj[v.name] = v
 		end
 	end
-	obj[list.elements + 1] = list.nextBlock
+	obj[list.elements + 1] = list.next[1]
 	return obj
 end
 
@@ -31,7 +31,7 @@ function getOccludedList(list)
 	
 	for k, v in pairs(list) do
 		if v.isOccluded then
-			local num = v.num - 1
+			local num = v.name - 1
 			if num > 0 then
 				table.insert(occList, num)
 			end
@@ -50,7 +50,7 @@ function updateBlockage(railIn, stationIn, list)
 		v.isOccluded = colors.test(stationIn, v.color)
 	end
 	
-	list.nextBlock.isOccluded = rs.testBundledInput(nextBlockDir, nextBlockColor)
+	list.next.isOccluded = rs.testBundledInput(nextBlockDir, nextBlockColor)
 end
 
 function sendData(mixList, occList)
