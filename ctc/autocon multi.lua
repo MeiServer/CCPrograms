@@ -31,10 +31,12 @@ function getOccludedList(list)
 	
 	for k, v in pairs(list) do
 		if v.isOccluded then
-			table.insert(occList, v.num - 1)
+			local num = v.num - 1
+			if num > 0 then
+				table.insert(occList, num)
+			end
 		end
 	end
-	table.insert(occList, list.nextBlock)
 	table.sort(occList)
 	return occList
 end
