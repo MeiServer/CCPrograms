@@ -2,14 +2,14 @@
 os.loadAPI("tables")
 
 --##Config##
-local final railoutDir = "front"
-local final stationoutDir = "back"
-local final railinDir = "left"
-local final stationinDir = "right"
+local final blockOutDir = "front"
+local final blockInDir = "back"
 local final nextBlockDir = "top"
 local final manualDir = "top"
+local final rebootDir = "top"
 local final nextBlockColor = colors.white
 local final manualColor = colors.orange
+local final rebootColor = colors.black
 
 --##Function##
 function getBlockageMixList(list)
@@ -41,38 +41,33 @@ function getOccludedList(list)
 	return occList
 end
 
-function updateBlockage(railIn, stationIn, list)
+function updateBlockage(blockIn, list)
 	for i, v in ipairs(list.rail) do
-		v.isOccluded = colors.test(railIn, v.color)
+		v.isOccluded = colors.test(blockIn, v.blockColor)
 	end
 	
 	for i, v in ipairs(list.station) do
-		v.isOccluded = colors.test(stationIn, v.color)
+		v.isOccluded = colors.test(blockIn, v.blockColor)
 	end
 	
 	list.next.isOccluded = rs.testBundledInput(nextBlockDir, nextBlockColor)
 end
 
 function sendData(mixList, occList)
-	local railColor = 0
-	local stationColor = 0
+	local blockColor = 0
 	
 	for i, v in ipairs(occList) do
 		if mixList[v].category ~= "next" then
 			local data = mixList[v]
-			if data.category == "rail" then
-				railColor = railColor + data.color
-			else
-				stationColor = stationColor + data.color
+				blockColor = blockColor + data.blockColor
 			end
 		end
 	end
-	rs.setBundledOutput(railoutDir, railColor)
-	rs.setBundledOutput(stationoutDir, stationColor)
+	rs.setBundledOutput(blockOutDir, blockColor)
 end
 
-function onUpdate(railIn, stationIn, list)
-	updateBlockage(railIn, stationIn, list)
+function onUpdate(blockIn, list)
+	updateBlockage(blockIn, list)
 	local mixList = getBlockageMixList(list)
 	local occList = getOccludedList(mixList)
 	sendData(mixList, occList)
@@ -81,8 +76,7 @@ end
 --##Main##
 local list = tables.argsIntoTable(...)
 
-while rs.testBundledInput(manualDir, manualColor) do
-	local railIn = rs.getBundledInput(railinDir)
-	local stationIn = rs.getBundledInput(stationinDir)
-	onUpdate(railIn, stationIn, list)
+while rs.testBundledInput(rebootDir, rebootColor) do
+	local blockIn = rs.getBundledInput(blockInDir)
+	onUpdate(blockIn, list)
 end
