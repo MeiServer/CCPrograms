@@ -7,7 +7,7 @@ OSBase.config = {
 	usePass = false,
 	isReceive = false,
 	sendID = "",
-	modemSide = "top",
+	modemSide = "bottom",
 	dataName = ""
 }
 
@@ -30,11 +30,23 @@ OSBase.addData = function(self, tbl)
 	end
 end
 
-OSBase.useNet(self, id, data)
+OSBase.usePass = function(self, pass, num)
+	self.config.usePass = true
+	if type(pass) == "string" or type(pass) == "number" then
+		if type(pass) == "number" then pass = tostring(pass) end
+		self.config.pass = pass
+	end
+	if type(num) == "number" then
+		self.config.repeatPass = num
+	end
+end
+
+OSBase.useNet = function(self, id, data)
 	assert(type(id) == "number", string.format(id.." is not number(%s)", type(id)))
 	self.config.isReceive = true
 	self.config.sendID = id
 	self.config.dataName = data
+end
 
 OSBase.clearAll = function()
 	term.clear()
@@ -134,12 +146,16 @@ OSBase.main = function(self)
 	local cfg = self.config
 	self:preMain()
 	if cfg.usePass then
+		local isApprove = false
 		local count = cfg.repeatPass
-		while count > 0 do
-			if self:checkPass() then
+		while count > 0 or not isApprove do
+			if self:checkPass()then
 				break
 			end
 			count = count - 1
+		end
+		if not isApprove then
+			break
 		end
 	end
 

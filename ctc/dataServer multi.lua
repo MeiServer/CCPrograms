@@ -7,7 +7,7 @@ local final inputSide = "front"
 local final Category = {
 	rail = "rail",
 	station = "station",
-	stationNP = "stationNotPass",
+	stationNP = "stationNP",
 	turnout = "turnout",
 	next = "next"
 }
@@ -15,7 +15,7 @@ local final Category = {
 --##Block##
 local Block = {}
 
-Block.new = function(category, name, color)
+Block.new = function(category, name, color, bcolor)
 	local obj = {}
 	obj.category = category
 	obj.isOccluded = false
@@ -23,6 +23,7 @@ Block.new = function(category, name, color)
 	obj.isManual = false
 	obj.onPower = true
 	obj.color = color
+	obj.blockColor = bcolor
 	obj.button = nil
 	return obj
 end
@@ -35,8 +36,8 @@ end
 --##RailBlock##
 local RailBlock = {}
 
-RailBlock.new = function(name, color, outtime, leavetime)
-	local obj = Block.new(Category.rail, name, color)
+RailBlock.new = function(name, color, bcolor, outtime, leavetime)
+	local obj = Block.new(Category.rail, name, color, bcolo)
 	obj.passageTime = 0
 	obj.maxPassageTime = (outtime * tick)
 	obj.leaveTime = leavetime * tick
@@ -52,11 +53,11 @@ end
 --##StationBlock##
 local StationBlock = {}
 
-StationBlock.new = function(name, color, isMain, y)
+StationBlock.new = function(name, color, bcolor, isMain, y)
 	if not isMain then
 		name = name.."-"..y
 	end
-	local obj = Block.new(Category.station, name, color)
+	local obj = Block.new(Category.station, name, color, bcolor)
 	obj.drawY = y
 	return obj
 end
@@ -90,6 +91,7 @@ function makeList(x, y)
 	obj.drawX = x
 	obj.drawY = y
 	obj.elements = 0
+	obj.blocks = 0
 	obj.rail = {}
 	obj.station = {}
 	obj.turnout = {}
@@ -105,14 +107,17 @@ function addBlockageForList(list, category, ...)
 	if category == Category.rail then
 		blockList = list.rail
 		list.elements = list.elements + 1
-		obj = RailBlock.new(list.elements, bit.blshift(1, table.maxn(blockList)), ...)
+		obj = RailBlock.new(list.elements, bit.blshift(1, table.maxn(blockList)), bit.blshift(1, list.blocks), ...)
+		list.blocks = list.blocks + 1
 	elseif category  == Category.station then
 		blockList = list.station
 		list.elements = list.elements + 1
-		obj = StationBlock.new(list.elements, bit.blshift(1, table.maxn(blockList)), true, ...)
+		obj = StationBlock.new(list.elements, bit.blshift(1, table.maxn(blockList)), bit.blshift(1, list.blocks), true, ...)
+		list.blocks = list.blocks + 1
 	elseif category == Category.stationNP then
 		blockList = list.station
-		obj = StationBlock.new(list.elements, bit.blshift(1, table.maxn(blockList)), false, ...)
+		obj = StationBlock.new(list.elements, bit.blshift(1, table.maxn(blockList)), bit.blshift(1, list.blocks), false, ...)
+		list.blocks = list.blocks + 1
 	elseif category == Category.turnout then
 		blockList = list.turnout
 		obj = Turnout.new(list.elements, bit.blshift(1, table.maxn(blockList)), ...)
@@ -121,7 +126,7 @@ function addBlockageForList(list, category, ...)
 		obj = Block.new("next", bit.blshift(1, table.maxn(blockList)))
 		assert(table.maxn(blockList) < 1, string.format("Index Out Of Bounds (%s)", category))
 	end
-	assert(table.maxn(blockList) < maxElement, string.format("Index Out Of Bounds (%s)", category))
+	assert(list.blocks < maxElement, string.format("Index Out Of Bounds (%s)", category))
 	
 	table.insert(blockList, obj)
 end
