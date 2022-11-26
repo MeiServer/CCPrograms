@@ -1,7 +1,11 @@
+--##API##
+os.loadAPI("tables")
+
 --##Config##
-local final outputDir = "top"
+local final outputDir = "back"
 local final inputEntryDir = "right"
 local final inputExitDir = "left"
+local final rebootDir = "top"
 
 --##Function##
 function entryTrain(list, entryColor)
@@ -26,7 +30,7 @@ function sendData(list)
 	local outputColor = 0
 	for i, v in ipairs(list) do
 		if v.passageTime > 0 then
-			outputColor = outputColor + v.color
+			outputColor = outputColor + v.blockColor
 		end
 	end
 	
@@ -48,10 +52,10 @@ end
 	
 --##Main##
 
-local list = {...}
+local list = tables.argsIntoTable(...)
 list = list.rail
 
-while rs.getInput("front") do
+while rs.getInput(rebootDir) do
 	local entryColor = rs.getBundledInput(inputEntryDir)
 	local exitColor = rs.getBundledInput(inputExitDir)
 	onUpdate(list, entryColor, exitColor)
