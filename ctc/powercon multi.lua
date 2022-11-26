@@ -3,10 +3,10 @@ os.loadAPI("button_API")
 os.loadAPI("tables")
 
 --##Config##
-local final railDir = "left"
-local final stationDir = "right"
+local final blockDir = "left"
 local final turnoutDir = "front"
 local final monDir = "top"
+local final manualDir = "right"
 local final autoDir = "back"
 local final autoColor = colors.white
 local final image = "image"
@@ -17,7 +17,8 @@ local final StateList = {
 	autoOn = {colors.yellow},
 	autoOff = {colors.black},
 	turnOn = {colors.orange},
-	turnOff = {colors.blue}
+	turnOff = {colors.blue},
+	reboot = {colors.red, colors.green, colors.blue, colors.yellow}
 }
 
 --##Function##
@@ -34,9 +35,9 @@ function initData(list)
 	rs.setBundledOutput(stationDir, 0)
 	rs.setBundledOutput(autoDir, 0)
 	for k, v in pairs(list) do
-		v.isManual = false
-		v.onPower = true
 		if v.category ~= "turnout" then
+			v.isManual = false
+			v.onPower = true
 			v.button:drawUpdate(StateList.default)
 		end
 	end
@@ -106,24 +107,22 @@ end
 function onUpdate(list, x, y, isAuto)
 	onButtonPush(list, x, y, isAuto)
 	
-	local colors = {[1] = 0, [2] = 0, [3] = 0}
+	local colors = {[1] = 0, [2] = 0}
 	
 	for k, v in pairs(list) do
-		local num = 1
-		if string.find(v.category, "station") then
-			num = 2
-		elseif v.category == "turnout" then
-			num = 3
-		end
-		
-		if not v.onPower then
-			colors[num] = colors[num] + v.color
+		if v.category == "turnout" then
+			if not v.onPower then
+				colors[2] = colors[2] + v.blockColor
+			end
+		else
+			if not v.onPower then
+				colors[1] = colors[1] + v.blockColor
+			end
 		end
 	end
 		
-	rs.setBundledOutput(railDir, colors[1])
-	rs.setBundledOutput(stationDir, colors[2])
-	rs.setBundledOutput(turnoutDir, colors[3])
+	rs.setBundledOutput(blockDir, colors[1])
+	rs.setBundledOutput(turnoutDir, colors[2])
 end
 
 function addButtonForList(list, x, y)
@@ -180,28 +179,32 @@ end
 local list = tables.argsIntoTable(...)
 list = addButtonForList(getBlockageMixList(list), list.drawX, list.drawY)
 
-
+local btns = getButtons(list)
 local autoButton = {
 	isAuto = false,
 	button = button_API.makeButton("auto", 1, 2, 1, 2, nil, StateList.autoOff)
 }
-
-local btns = getButtons(list)
 table.insert(btns, autoButton.button)
-
 local mon = peripheral.wrap(monDir)
 initialize(mon)
+local rebootButton = {
+	local x, y = term.getSize()
+	button = button_API.makeButton("reboot", 1, 2, y - 1, y, nil, StateList.reboot)
+}
+table.insert(btns, rebootButton.button)
 local panel = button_API.makePanel(btns, image, mon)
 panel:draw()
 
-while rs.getInput("front") do
+while rs.getBundledInput(turnoutDir, colors.black) do
 	local event, btn, x, y = panel:pullButtonPushEvent(monDir)
-	if btn.name ~= "auto" then
+	if btn.name ~= "auto" and btn.name ~= "reboot" then
 		onUpdate(list, x, y, autoButton.isAuto)
 	elseif btn.name == "auto" then
 		if changeAuto(autoButton) then
-			break
+			initData(list)
 		end
+	elseif btn.name == "reboot" then
+		break
 	end
 	sleep(0)
 end
