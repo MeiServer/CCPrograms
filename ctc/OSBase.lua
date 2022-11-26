@@ -154,9 +154,7 @@ OSBase.main = function(self)
 			end
 			count = count - 1
 		end
-		if not isApprove then
-			break
-		end
+		assert(not isApprove, "Please start over")
 	end
 
 	self:middleMain()
