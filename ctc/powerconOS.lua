@@ -1,3 +1,7 @@
+--name: powerconOS
+--author: niko__25
+--version: 0.1
+
 --##API##
 os.loadAPI("OSBase")
 
@@ -10,6 +14,6 @@ end
 local osP = OSBase.createOS(run)
 osP:useNet(157, "test")
 
-while rs.getInput("front") do
+while true do
 	osP:main()
 end

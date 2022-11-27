@@ -1,3 +1,7 @@
+--name: dataServer
+--author: niko__25
+--version: 0.1
+
 --##Config##
 local final tick = 20
 local final isSendRetry = false
@@ -37,7 +41,7 @@ end
 local RailBlock = {}
 
 RailBlock.new = function(name, color, bcolor, outtime, leavetime)
-	local obj = Block.new(Category.rail, name, color, bcolo)
+	local obj = Block.new(Category.rail, name, color, bcolor)
 	obj.passageTime = 0
 	obj.maxPassageTime = (outtime * tick)
 	obj.leaveTime = leavetime * tick
@@ -86,10 +90,11 @@ Turnout.pp = function(self)
 end
 
 --##Function##
-function makeList(x, y)
+function makeList(x, y, isOut)
 	local obj = {}
 	obj.drawX = x
 	obj.drawY = y
+	obj.isOut = isOut
 	obj.elements = 0
 	obj.blocks = 0
 	obj.rail = {}
@@ -133,7 +138,7 @@ end
 
 --##Data##
 list = {}
-test = makeList(2, 7)
+test = makeList(2, 7, false)
 addBlockageForList(test,      Category.rail, 100, 	10)
 addBlockageForList(test,      Category.rail,  90, 	10)
 addBlockageForList(test,      Category.rail,  80, 	10)
@@ -164,7 +169,7 @@ while rs.getInput("back") do
 		rednet.send(id, textutils.serialize(list[str]), true)
 	end
 	if isSendRetry then
-		hour, min = math.modf( os.time() )
+		hour, min = math.modf(os.time())
 		min = math.floor( min * 60 )
 	
 		if min > oldmin + 1 then

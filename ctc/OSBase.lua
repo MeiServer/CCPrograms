@@ -1,3 +1,7 @@
+--name: OSBase
+--author: niko__25
+--version: 0.1
+
 local OSBase = {}
 
 --##Config##
@@ -154,7 +158,9 @@ OSBase.main = function(self)
 			end
 			count = count - 1
 		end
-		assert(not isApprove, "Please start over")
+		if not isApprove then
+			break
+		end
 	end
 
 	self:middleMain()

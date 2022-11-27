@@ -1,3 +1,7 @@
+--name: monOS
+--author: niko__25
+--version: 0.1
+
 --##API##
 os.loadAPI("OSBase")
 
