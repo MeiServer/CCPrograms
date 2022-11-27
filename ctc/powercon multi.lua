@@ -1,3 +1,7 @@
+--name: powercon
+--author: niko__25
+--version: 0.1
+
 --##API##
 os.loadAPI("button_API")
 os.loadAPI("tables")
@@ -12,8 +16,10 @@ local final autoColor = colors.white
 local final image = "image"
 local final StateList = {
 	default = {colors.white},
-	powerOn = {colors.green, colors.yellow, colors.white},
-	powerOff = {colors.red, colors.yellow, colors.white},
+	powerInOn = {colors.white, colors.yellow, colors.green},
+	powerInOff = {colors.white, colors.yellow, colors.red},
+	powerOutOn = {colors.green, colors.yellow, colors.white},
+	powerOutOff = {colors.red, colors.yellow, colors.white},
 	autoOn = {colors.yellow},
 	autoOff = {colors.black},
 	turnOn = {colors.orange},
@@ -57,22 +63,23 @@ function changeAuto(tbl)
 	end
 end
 
-function onButtonPush(list, pushX, pushY, isAuto)
+function onButtonPush(list, pushX, pushY, isAuto, isOut)
 	for k, v in pairs(list) do
-		local posX, posY = v.button.start.x, v.button.start.y
+		local powerX = isOut and v.button.start.x or v.button.goal.x
+		local manualX = v.button.start.x + 1
 		if v.category ~= "turnout" then
 			if isAuto then
-				if posX == pushX and posY == pushY then
+				if powerX == pushX and v.button.start.y == pushY then
 					if v.isManual then
 						v.onPower = not v.onPower
-						drawBlock(v)
+						drawBlock(v, isOut)
 					end
-				elseif (posX + 1) == pushX and posY == pushY then
+				elseif manualX == pushX and v.button.start.y == pushY then
 					v.isManual = not v.isManual
 					if not v.isManual then
 						v.onPower = true
 					end
-					drawBlock(v)
+					drawBlock(v, isOut)
 				end
 			end
 		else
@@ -84,12 +91,14 @@ function onButtonPush(list, pushX, pushY, isAuto)
 	end
 end
 
-function drawBlock(tbl)
+function drawBlock(tbl, isOut)
 	if tbl.isManual then
+		local state = isOut and StateList.powerOutOn or StateList.powerInOn
 		if tbl.onPower then
 			tbl.button:drawUpdate(StateList.powerOn)
 		else
-		 tbl.button:drawUpdate(StateList.powerOff)
+			state = isOut and StateList.powerOutOff or StateList.powerInOff
+			tbl.button:drawUpdate(StateList.powerOff)
 		end
 	else
 		tbl.button:drawUpdate(StateList.default)
@@ -104,8 +113,8 @@ function drawTurnout(tbl)
 	end
 end
 
-function onUpdate(list, x, y, isAuto)
-	onButtonPush(list, x, y, isAuto)
+function onUpdate(list, x, y, isAuto, isOut)
+	onButtonPush(list, x, y, isAuto, isOut)
 	
 	local colors = {[1] = 0, [2] = 0}
 	
@@ -125,28 +134,39 @@ function onUpdate(list, x, y, isAuto)
 	rs.setBundledOutput(turnoutDir, colors[2])
 end
 
-function addButtonForList(list, x, y)
-	local minX, maxX, y = x, x, y
-	for k, v in pairs(list) do
-		if type(v.name) == "number" then
-			minX = x + 4 * (v.name - 1)
-			maxX = minX + 2
+function addButtonForList(list, x, y, isOut)
+	local maxNum = 0
+	for k in pairs(list) do
+		if type(k) == "number" and k > 0 then
+			maxNum = k
 		end
-		
+	end
+	local t = {}
+	for i = 0, maxNum - 1 do
+		t[i + 1] = {
+			minX = x + 4 * i,
+			maxX = minX + 2,
+		}
+	end
+
+	for k, v in pairs(list) do
+		local name = v.name
+		if type(v.name) == "string" then
+			name = tonumber(v.name:match("[%d]"))
+		end
+		if not isOut then
+			name = maxNum - (name - 1)
+		end
 		if string.find(v.category, "station") then
 			y = v.drawY
-			
-			if type(v.name) == "string" then
-				minX = x + 4 * (tonumber(v.name:match("[%d]")) - 1)
-				maxX = minX + 2
-			end
-		elseif v.category == "turnout" then
-			minX, maxX = v.drawX, v.drawX
-			y = v.drawY
 		end
-		
-		v.button = button_API.makeButton(
-			v.name, minX, maxX, y, y, nil, StateList.default)
+		if v.category == "turnout" then
+			v.button = button_API.makeButton(
+			v.name, v.drawX, v.drawX, v.drawY, v.drawY, nil, StateList.default)
+		else
+			v.button = button_API.makeButton(
+			v.name, t[name].minX, t[name].maxX, y, y, nil, StateList.default)
+		end
 	end
 	return list
 end
@@ -177,7 +197,7 @@ end
 
 --##Main##
 local list = tables.argsIntoTable(...)
-list = addButtonForList(getBlockageMixList(list), list.drawX, list.drawY)
+list = addButtonForList(getBlockageMixList(list), list.drawX, list.drawY, list.isOut)
 
 local btns = getButtons(list)
 local autoButton = {
@@ -198,7 +218,7 @@ panel:draw()
 while rs.getBundledInput(turnoutDir, colors.black) do
 	local event, btn, x, y = panel:pullButtonPushEvent(monDir)
 	if btn.name ~= "auto" and btn.name ~= "reboot" then
-		onUpdate(list, x, y, autoButton.isAuto)
+		onUpdate(list, x, y, autoButton.isAuto, list.isOut)
 	elseif btn.name == "auto" then
 		if changeAuto(autoButton) then
 			initData(list)
