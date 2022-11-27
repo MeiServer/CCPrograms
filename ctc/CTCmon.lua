@@ -1,3 +1,7 @@
+--name: CTCmon
+--author: niko__25
+--version: 0.1
+
 --##API##
 os.loadAPI("tables")
 os.loadAPI("draw_API")
