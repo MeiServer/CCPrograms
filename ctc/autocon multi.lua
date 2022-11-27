@@ -1,3 +1,7 @@
+--name: autocon
+--author: niko__25
+--version: 0.1
+
 --##API##
 os.loadAPI("tables")
 
@@ -28,7 +32,6 @@ end
 
 function getOccludedList(list)
 	local occList = {}
-	
 	for k, v in pairs(list) do
 		if v.isOccluded then
 			local num = v.name - 1
@@ -45,17 +48,14 @@ function updateBlockage(blockIn, list)
 	for i, v in ipairs(list.rail) do
 		v.isOccluded = colors.test(blockIn, v.blockColor)
 	end
-	
 	for i, v in ipairs(list.station) do
 		v.isOccluded = colors.test(blockIn, v.blockColor)
 	end
-	
 	list.next.isOccluded = rs.testBundledInput(nextBlockDir, nextBlockColor)
 end
 
 function sendData(mixList, occList)
 	local blockColor = 0
-	
 	for i, v in ipairs(occList) do
 		if mixList[v].category ~= "next" then
 			local data = mixList[v]
