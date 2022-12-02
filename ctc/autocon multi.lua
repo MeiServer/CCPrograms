@@ -32,37 +32,42 @@ function getBlockageMixList(list)
 	return obj
 end
 
-function getOccludedList(list)
+function getOccludedList(list, manualIn, manualBIn)
 	local occList = {}
 	for k, v in pairs(list) do
-		if v.isOccluded then
-			local num = v.name - 1
-			if num > 0 then
+		if not v.isManual then
+			if v.isOccluded then
+				local num = v.name - 1
+				if num > 0 then
+					table.insert(occList, num)
+				end
+			end
+		else
+			if v.onPower then
 				table.insert(occList, num)
 			end
 		end
 	end
+	occList = tables.unique(occList)
 	table.sort(occList)
 	return occList
 end
 
-function updateBlockage(blockIn, manualIn, manualBIn, list)
-	local colorIn
+function updateBlockage(blockIn, list)
 	for i, v in ipairs(list.rail) do
-		if colors.test(manualIn, v.blockColor) then
-			colorIn = manualBIn
-		else
-			colorIn = blockIn
-		v.isOccluded = colors.test(colorIn, v.blockColor)
+		v.isOccluded = colors.test(blockIn, v.blockColor)
 	end
 	for i, v in ipairs(list.station) do
-		if colors.test(manualIn, v.blockColor) then
-			colorIn = manualBIn
-		else
-			colorIn = blockIn
-		v.isOccluded = colors.test(colorIn, v.blockColor)
+		v.isOccluded = colors.test(blockIn, v.blockColor)
 	end
 	list.next.isOccluded = rs.testBundledInput(nextBlockDir, nextBlockColor)
+end
+
+function updateManualData(manualIn, manualBIn, list)
+	for k, v in pairs(list) do
+		v.isManual = colors.test(manualIn, v.blockColor)
+		v.onPower = colors.test(manualBIn, v.blockColor)
+	end
 end
 
 function sendData(mixList, occList)
@@ -77,9 +82,10 @@ function sendData(mixList, occList)
 end
 
 function onUpdate(blockIn, manualIn, manualBIn, list)
-	updateBlockage(blockIn, manualIn, manualBIn, list)
+	updateBlockage(blockIn, list)
+	updateManualData(manualIn, manualBIn, list)
 	local mixList = getBlockageMixList(list)
-	local occList = getOccludedList(mixList)
+	local occList = getOccludedList(mixList, manualIn, manualBIn)
 	sendData(mixList, occList)
 end
 
