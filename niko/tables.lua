@@ -1,6 +1,6 @@
 --name: tables
 --author: niko__25
---version: 0.1
+--version: 0.1.1
 
 function empty(tbl)
 	if tbl == nil then return true end
@@ -112,6 +112,18 @@ function tableSort(tbl)
 		return tonumber(a) < tonumber(b)
 	end)
 	return sortkey
+end
+
+function clone(t)
+	local new = {}
+	for k, v in pairs(t) do
+		if type(v) == "table" then
+			new[k] = tables.clone(v)
+		else
+			new[k] = v
+		end
+	end
+	return new
 end
 
 function argsIntoTable(...)
