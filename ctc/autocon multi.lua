@@ -1,6 +1,6 @@
 --name: autocon
 --author: niko__25
---version: 0.1
+--version: 0.1.1
 
 --##API##
 os.loadAPI("tables")
@@ -9,7 +9,9 @@ os.loadAPI("tables")
 local final blockOutDir = "front"
 local final blockInDir = "back"
 local final nextBlockDir = "top"
-local final manualDir = "top"
+local final autoDir = "top"
+local final manualDir = "back"
+local final blockMInDir = "right"
 local final rebootDir = "top"
 local final nextBlockColor = colors.white
 local final manualColor = colors.orange
@@ -44,12 +46,21 @@ function getOccludedList(list)
 	return occList
 end
 
-function updateBlockage(blockIn, list)
+function updateBlockage(blockIn, manualIn, manualBIn, list)
+	local colorIn
 	for i, v in ipairs(list.rail) do
-		v.isOccluded = colors.test(blockIn, v.blockColor)
+		if colors.test(manualIn, v.blockColor) then
+			colorIn = manualBIn
+		else
+			colorIn = blockIn
+		v.isOccluded = colors.test(colorIn, v.blockColor)
 	end
 	for i, v in ipairs(list.station) do
-		v.isOccluded = colors.test(blockIn, v.blockColor)
+		if colors.test(manualIn, v.blockColor) then
+			colorIn = manualBIn
+		else
+			colorIn = blockIn
+		v.isOccluded = colors.test(colorIn, v.blockColor)
 	end
 	list.next.isOccluded = rs.testBundledInput(nextBlockDir, nextBlockColor)
 end
@@ -59,15 +70,14 @@ function sendData(mixList, occList)
 	for i, v in ipairs(occList) do
 		if mixList[v].category ~= "next" then
 			local data = mixList[v]
-				blockColor = blockColor + data.blockColor
-			end
+			blockColor = blockColor + data.blockColor
 		end
 	end
 	rs.setBundledOutput(blockOutDir, blockColor)
 end
 
-function onUpdate(blockIn, list)
-	updateBlockage(blockIn, list)
+function onUpdate(blockIn, manualIn, manualBIn, list)
+	updateBlockage(blockIn, manualIn, manualBIn, list)
 	local mixList = getBlockageMixList(list)
 	local occList = getOccludedList(mixList)
 	sendData(mixList, occList)
@@ -77,6 +87,10 @@ end
 local list = tables.argsIntoTable(...)
 
 while rs.testBundledInput(rebootDir, rebootColor) do
-	local blockIn = rs.getBundledInput(blockInDir)
-	onUpdate(blockIn, list)
+	if rs.testBundledInput(autoDir, manualColor) then
+		local blockIn = rs.getBundledInput(blockInDir)
+		local manualIn = rs.getBundledInput(manualDir)
+		local manualBIn = rs.getBundledInput(manualBInDir)
+		onUpdate(blockIn, manualIn, manualBin, list)
+	end
 end
