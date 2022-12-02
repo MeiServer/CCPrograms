@@ -1,3 +1,7 @@
+--name: tables
+--author: niko__25
+--version: 0.1.2
+
 function empty(tbl)
 	if tbl == nil then return true end
 	return not next(tbl)
@@ -41,6 +45,22 @@ function values(tbl)
 	return u
 end
 
+function removeKey(tbl, key)
+	for k, v in pairs(tbl) do
+		if k == key then
+			tbl[key] = nil
+		end
+	end
+end
+
+function removeValue(tbl, value)
+	for k, v in pairs(tbl) do
+		if v == value then
+			tbl[k] = nil
+		end
+	end
+end
+
 function map(tbl, func)
 	local ret_tbl = {}
 	for k, v in pairs(tbl) do
@@ -59,7 +79,7 @@ function filter(tbl, func)
   
     for k, v in pairs(tbl) do
         if func(k, v) then
-            if not (type(k)=="number" and k%1==0) then
+            if not (type(k) == "number" and k % 1 == 0) then
                 res[k] = v
             end
         end
@@ -68,6 +88,97 @@ function filter(tbl, func)
     return res
 end
 
+function keySort(tbl)
+	local tkeys = {}
+	for k in pairs(tbl) do
+		table.insert(tkeys, k)
+	end
+	table.sort(tkeys)
+	local t = {}
+	for _, k in ipairs(tkeys) do
+		t[k] = tbl[k]
+	end
+	return t
+end
+
+function tableSort(tbl)  
+	local sortkey = {}
+	local n = 0
+	for k ,v in pairs(tbl) do
+		n = n + 1
+		sortkey[n] = k
+	end
+	table.sort(sortkey,function(a,b)
+		return tonumber(a) < tonumber(b)
+	end)
+	return sortkey
+end
+
+function clone(t)
+	local new = {}
+	for k, v in pairs(t) do
+		if type(v) == "table" then
+			new[k] = tables.clone(v)
+		else
+			new[k] = v
+		end
+	end
+	return new
+end
+
+function unique(t)
+	local check = {}
+	local res = {}
+	for i, v in ipairs(t) do
+		if not(check[v]) then
+			check[v] = true
+			res[1+#res] = v
+		end
+	end
+	return res
+end
+
+function argsIntoTable(...)
+	local t = {...}
+	local s = ""
+	local isValue = false
+	for i, v in ipairs(t) do
+		if v == "=" then
+			isValue = true
+		elseif string.find(v, "[.{]") or string.find(v, "[.,]")then
+			isValue = false
+		end
+		if isValue then
+			if not string.find(v, "[.=]") then
+				v = "\""..v.."\""
+			end
+		end
+		s = s..v
+	end
+	return textutils.unserialize(s)
+end
+
+function overwrite(tbl, tbl2)
+	if isTable(tbl) and isTable(tbl2) then
+		for k, v in pairs(tbl2) do
+			tbl[k] = v
+		end
+	end
+end
+	
 function isTable(tbl)
 	return type(tbl) == "table"
+end
+
+function printTable(table)
+	if table then
+		for k, v in pairs(table) do
+			print(string.format("Key: %s, Value: %s", tostring(k), tostring(v)))
+			if type(v) == "table" then
+				printTable(v)
+			end
+		end
+	else
+		print("This table is empty")
+	end
 end
