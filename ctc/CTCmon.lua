@@ -1,28 +1,42 @@
 --name: CTCmon
 --author: niko__25
---version: 0.1
+--version: 0.1.1
+--add state color 5
+--add change rectangleForList
+--fix powerOFf poweroff
+--change condition 'manual only draw powerOff'
+--use tables.clone ()
+--rename category
+--rename Config
+--supported In and Out line
 
 --##API##
 os.loadAPI("tables")
 os.loadAPI("draw_API")
 
 --##Config##
-local final monDir = "top"
-local final detecDir = "left"
-local final powerDir = "right"
-local final manualDir = "back"
-local final turnDir = "front"
+local final monSide = "top"
+local final detecSide = "left"
+local final powerSide = "right"
+local final manualSide = "back"
+local final pointSide = "front"
+local final autoColor = colors.red
 local final image = "image"
 
 --##State##
 local StateList = {
-	default = {colors.white},
+	default = {colors.white, colors.white
+		, colors.white, colors.white, colors.white},
 	autoOn = {colors.yellow},
 	autoOff = {colors.black},
-	detecOn = {colors.lightBlue},
-	powerOn = {[5] = colors.red},
-	powerOFf = {[5] = colors.lime},
-	manualOn = {[4] = colors.yellow},
+	detecOn = {colors.lightBlue, colors.lightBlue
+		, colors.lightBlue, colors.lightBlue, colors.lightBlue},
+	powerInOn = {[5] = colors.red},
+	powerOutOn = {[1] = colors.red},
+	powerInOff = {[5] = colors.lime},
+	powerOutOff = {[1] = colors.lime},
+	manualInOn = {[4] = colors.yellow},
+	manualOutOn = {[2] = colors.yellow},
 	turnOn = {colors.orange},
 	turnOff = {colors.blue}
 }
@@ -36,22 +50,33 @@ function initialize(mon)
 	mon.setTextScale(1)
 end
 
-function blockUpdate(list, detecIn, powerIn, manualIn)
-	local state
+function blockUpdate(list, detecIn, powerIn, manualIn, isOut)
+	local state = {}
 	for k, v in pairs(list) do
-		if v.category ~= "turnout" then
+		if v.category ~= "point" then
+			state = tables.clone(StateList.default)
 			if colors.test(detecIn, v.blockColor) then
-				state = StateList.detecOn
-			else
-				state = StateList.default
+				tables.overwrite(StateList.detecOn)
 			end
-			if colors.test(powerIn, v.bloclColor) then
-				tables.overwrite(state, State.powerOn)
-			else
-				tables.overwrite(state, State.powerOff)
+			if colors.test(manualIn, v.blockColor) then
+				if isOut then
+					tables.overwrite(StateList.manualOutOn)
+				else
+					tables.overwrite(state, State.manualInOn)
+				end
 			end
-			if colors.test(manualIn, v.bloclColor) then
-				tables.overwrite(state, State.manualOn)
+			if colors.test(powerIn, v.blockColor) then
+				if isOut then
+					tables.overwrite(StateList.powerOutOn)
+				else
+					tables.overwrite(state, StateList.powerInOn)
+				end
+			elseif state[4] == colors.yellow then
+				if isOut then
+					tables.overwrite(StateList.powerOutOff)
+				else
+					tables.overwrite(state, StateList.powerInOff)
+				end
 			end
 			v.rec:drawUpdate(state)
 		end
@@ -60,7 +85,7 @@ end
 
 function turnUpdate(list, turnIn)
 	for k, v in pairs(list) do
-		if v.category == "turnout" then
+		if v.category == "point" then
 			if colors.test(turnIn, v.color) then
 				v.rec:drawUpdate(StateList.turnOn)
 			else
@@ -71,41 +96,52 @@ function turnUpdate(list, turnIn)
 end
 
 function autoUpdate(autoRec, turnIn)
-	if colors.test(turnIn, colors.red) then
+	if colors.test(turnIn, autoColor) then
 		autoRec:drawUpdate(StateList.autoOn)
 	else
 		autoRec:drawUpdate(StateList.autoOff)
 	end
 end
 
-function onUpdate(list, detecIn, powerIn, manualIn, turnIn, auto)
-	blockUpdate(list, detecIn, powerIn, manualIn)
+function onUpdate(list, detecIn, powerIn, manualIn, turnIn, auto, isOut)
+	blockUpdate(list, detecIn, powerIn, manualIn, isOut)
 	turnUpdate(list, turnIn)
 	autoUpdate(auto, turnIn)
 end
 
 function addRectangleForList(list, x, y)
-	local minX, maxX, y = x, x, y
-	for k, v in pairs(list) do
-		if type(v.name) == "number" then
-			minX = x + 6 * (v.name - 1)
-			maxX = minX + 4
+	local maxNum = 0
+	for k in pairs(list) do
+		if type(k) == "number" and k > 0 then
+			maxNum = k
 		end
-		
+	end
+	local t = {}
+	for i = 0, maxNum - 1 do
+		t[i + 1] = {
+			minX = x + 6 * i,
+			maxX = (x + 6 * i) + 2,
+		}
+	end
+
+	for k, v in pairs(list) do
+		local name = v.name
+		if type(v.name) == "string" then
+			name = tonumber(v.name:match("[%d]"))
+		end
+		if not isOut then
+			name = maxNum - (name - 1)
+		end
 		if string.find(v.category, "station") then
 			y = v.drawY
-			
-			if type(v.name) == "string" then
-				minX = x + 6 * (tonumber(v.name:match("[%d]")) - 1)
-				maxX = minX + 4
-			end
-		elseif v.category == "turnout" then
-			minX, maxX = v.drawX, v.drawX
-			y = v.drawY
 		end
-		
-		v.rec = draw_API.makeRectangle(
-			v.name, minX, maxX, y, y, StateList.default)
+		if v.category ~= "point" then
+			v.rec = draw_API.makeRectangle(
+			v.name, t[name].minX, t[name].maxX, y, y, StateList.default)
+		else
+			v.rec = draw_API.makeRectangle(
+			v.name, v.drawX, v.drawY, v.drawY, v.drawY, StateList.turnOff)
+		end
 	end
 	return list
 end
@@ -118,7 +154,7 @@ function getBlockageMixList(list)
 	for i, v in ipairs(list.station) do
 		obj[v.name] = v
 	end
-	for i, v in ipairs(list.turnout) do
+	for i, v in ipairs(list.point) do
 		obj[v.name] = v
 	end
 	return obj
@@ -135,23 +171,24 @@ end
 
 --##Main##
 local list = tables.argsIntoTable(...)
+local isOut = list.isOut
 list = addRectangleForList(getBlockageMixList(list), list.drawX, list.drawY)
 
 local recs = getRectangles(list)
 local autoRec = draw_API.makeRectangle("auto", 1, 2, 1, 2, StateList.autoOff)
 table.insert(recs, autoRec)
 
-local mon = peripheral.wrap(monDir)
+local mon = peripheral.wrap(monSide)
 initialize(mon)
 local panel = draw_API.makePanel(recs, image, mon)
 panel:draw()
 
 while true do
-	local detecIn = rs.getBundledInput(detecDir)
-	local powerIn = rs.getBundledInput(powerDir)
-	local manualIn = rs.getBundledInput(manualDir)
-	local turnIn = rs.getBundledInput(turnDir)
-	onUpdate(list, datecIn, powerIn, manualIn, turnIn, autoRec)
+	local detecIn = rs.getBundledInput(detecSide)
+	local powerIn = rs.getBundledInput(powerSide)
+	local manualIn = rs.getBundledInput(manualSide)
+	local turnIn = rs.getBundledInput(pointSide)
+	onUpdate(list, detecIn, powerIn, manualIn, turnIn, autoRec, isOut)
 	
 	sleep(0)
 end

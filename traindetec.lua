@@ -1,16 +1,17 @@
-
 --name: traindetec
 --author: niko__25
---version: 0.1
+--version: 0.1.1
+--reversal rebootstate
+--rename Config
 
 --##API##
 os.loadAPI("tables")
 
 --##Config##
-local final outputDir = "back"
-local final inputEntryDir = "right"
-local final inputExitDir = "left"
-local final rebootDir = "top"
+local final outputSide = "back"
+local final inputEntrySide = "right"
+local final inputExitSide = "left"
+local final rebootSide = "top"
 
 --##Function##
 function entryTrain(list, entryColor)
@@ -39,7 +40,7 @@ function sendData(list)
 		end
 	end
 	
-	rs.setBundledOutput(outputDir, outputColor)
+	rs.setBundledOutput(outputSide, outputColor)
 end
 
 function onUpdate(list, entryColor, exitColor)
@@ -60,9 +61,9 @@ end
 local list = tables.argsIntoTable(...)
 list = list.rail
 
-while rs.getInput(rebootDir) do
-	local entryColor = rs.getBundledInput(inputEntryDir)
-	local exitColor = rs.getBundledInput(inputExitDir)
+while not rs.getInput(rebootSide) do
+	local entryColor = rs.getBundledInput(inputEntrySide)
+	local exitColor = rs.getBundledInput(inputExitSide)
 	onUpdate(list, entryColor, exitColor)
 	sleep(0)
 end

@@ -1,3 +1,7 @@
+--name: tables
+--author: niko__25
+--version: 0.1.2
+
 function empty(tbl)
 	if tbl == nil then return true end
 	return not next(tbl)
@@ -110,6 +114,30 @@ function tableSort(tbl)
 	return sortkey
 end
 
+function clone(t)
+	local new = {}
+	for k, v in pairs(t) do
+		if type(v) == "table" then
+			new[k] = tables.clone(v)
+		else
+			new[k] = v
+		end
+	end
+	return new
+end
+
+function unique(t)
+	local check = {}
+	local res = {}
+	for i, v in ipairs(t) do
+		if not(check[v]) then
+			check[v] = true
+			res[1+#res] = v
+		end
+	end
+	return res
+end
+
 function argsIntoTable(...)
 	local t = {...}
 	local s = ""
@@ -129,6 +157,14 @@ function argsIntoTable(...)
 	end
 	return textutils.unserialize(s)
 end
+
+function overwrite(tbl, tbl2)
+	if isTable(tbl) and isTable(tbl2) then
+		for k, v in pairs(tbl2) do
+			tbl[k] = v
+		end
+	end
+end
 	
 function isTable(tbl)
 	return type(tbl) == "table"
@@ -138,6 +174,9 @@ function printTable(table)
 	if table then
 		for k, v in pairs(table) do
 			print(string.format("Key: %s, Value: %s", tostring(k), tostring(v)))
+			if type(v) == "table" then
+				printTable(v)
+			end
 		end
 	else
 		print("This table is empty")
