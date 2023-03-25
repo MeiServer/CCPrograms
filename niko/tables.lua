@@ -1,6 +1,6 @@
 --name: tables
 --author: niko__25
---version: 0.1.1
+--version: 0.1.2
 
 function empty(tbl)
 	if tbl == nil then return true end
@@ -124,6 +124,18 @@ function clone(t)
 		end
 	end
 	return new
+end
+
+function unique(t)
+	local check = {}
+	local res = {}
+	for i, v in ipairs(t) do
+		if not(check[v]) then
+			check[v] = true
+			res[1+#res] = v
+		end
+	end
+	return res
 end
 
 function argsIntoTable(...)
